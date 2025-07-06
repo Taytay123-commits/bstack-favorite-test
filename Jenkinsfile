@@ -6,8 +6,7 @@ pipeline {
         BROWSERSTACK_ACCESS_KEY = credentials('bstack-access-key')
     }
 
-
-
+    stages {
         stage('Install Dependencies') {
             steps {
                 sh 'pip install -r requirements.txt'
@@ -26,3 +25,4 @@ pipeline {
         }
     }
 }
+
