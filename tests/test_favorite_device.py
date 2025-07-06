@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from browserstack_config import USERNAME, ACCESS_KEY, capabilities, DEMO_USER, DEMO_PASS
+from browserstack_config import USERNAME, ACCESS_KEY, capabilities, DEMO_USERNAME, DEMO_PASSWORD
 
 DEMO_USERNAME = os.environ.get("DEMO_USERNAME")
 DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD")
