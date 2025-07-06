@@ -26,7 +26,7 @@ pipeline {
                 ]) {
                     sh '''
                         . venv/bin/activate
-                        pytest
+                        pytest tests/
                     '''
                 }
             }
