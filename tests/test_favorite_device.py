@@ -10,6 +10,7 @@ from browserstack_config import capabilities, USERNAME, ACCESS_KEY, DEMO_PASS
 def test_favorite_galaxy_s20(caps):
     browser_name = caps.get("browserName")
 
+    # Attach bstack options
     bstack_options = {
         "userName": USERNAME,
         "accessKey": ACCESS_KEY,
@@ -17,75 +18,59 @@ def test_favorite_galaxy_s20(caps):
         "projectName": "Favorites Testing",
         "debug": "true"
     }
-
     caps["bstack:options"] = bstack_options
 
     try:
+        # Setup driver
         if browser_name in ["Chrome", "Firefox"]:
-            options = (
-                webdriver.ChromeOptions()
-                if browser_name == "Chrome"
-                else webdriver.FirefoxOptions()
-            )
+            options = webdriver.ChromeOptions() if browser_name == "Chrome" else webdriver.FirefoxOptions()
             for key, value in caps.items():
                 options.set_capability(key, value)
-
-            driver = webdriver.Remote(
-                command_executor="https://hub.browserstack.com/wd/hub",
-                options=options,
-            )
+            driver = webdriver.Remote("https://hub.browserstack.com/wd/hub", options=options)
         else:
             mobile_options = webdriver.ChromeOptions()
             for key, value in caps.items():
                 mobile_options.set_capability(key, value)
+            driver = webdriver.Remote("https://hub.browserstack.com/wd/hub", options=mobile_options)
 
-            driver = webdriver.Remote(
-                command_executor="https://hub.browserstack.com/wd/hub",
-                options=mobile_options,
-            )
-
-        driver.get("https://bstackdemo.com")
         wait = WebDriverWait(driver, 20)
+        driver.get("https://bstackdemo.com")
 
-        # Click "Sign In"
-        wait.until(EC.element_to_be_clickable((By.ID, "signin"))).click()
+        # Click "Sign In" in the top right
+        sign_in_btn = wait.until(EC.element_to_be_clickable((By.ID, "signin")))
+        sign_in_btn.click()
 
-        # === Username Dropdown ===
-        wait.until(EC.element_to_be_clickable((By.ID, "username")))
-        wait.until(EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, "#username div[class$='-indicator']"))
-        ).click()
-        wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//div[@id='username']//div[text()='demouser']"))
-        ).click()
+        # Fill in Username (inside container with ID 'username')
+        username_container = wait.until(EC.presence_of_element_located((By.ID, "username")))
+        username_input = username_container.find_element(By.TAG_NAME, "input")
+        username_input.send_keys("demouser")
 
-        # === Password Dropdown ===
-        wait.until(EC.element_to_be_clickable((By.ID, "password")))
-        wait.until(EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, "#password div[class$='-indicator']"))
-        ).click()
-        wait.until(EC.element_to_be_clickable(
-            (By.XPATH, f"//div[@id='password']//div[text()='{DEMO_PASS}']"))
-        ).click()
+        # Fill in Password (inside container with ID 'password')
+        password_container = wait.until(EC.presence_of_element_located((By.ID, "password")))
+        password_input = password_container.find_element(By.TAG_NAME, "input")
+        password_input.send_keys(DEMO_PASS)
 
-        # Click Login button
-        wait.until(EC.element_to_be_clickable((By.ID, "login-btn"))).click()
+        # Submit Login
+        login_btn = wait.until(EC.element_to_be_clickable((By.ID, "login-btn")))
+        login_btn.click()
 
         # Filter for Samsung
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='Samsung']"))).click()
+        samsung_filter = wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='Samsung']")))
+        samsung_filter.click()
 
-        # Favorite Galaxy S20+
-        wait.until(EC.element_to_be_clickable((
+        # Favorite the Galaxy S20+
+        favorite_icon = wait.until(EC.element_to_be_clickable((
             By.XPATH,
             "//p[text()='Galaxy S20+']/ancestor::div[@class='shelf-item']//span[contains(@class, 'bn-heart')]"
-        ))).click()
+        )))
+        favorite_icon.click()
 
-        # Go to favorites page
-        wait.until(EC.element_to_be_clickable((By.ID, "favorites"))).click()
+        # Go to favorites
+        favorites_btn = wait.until(EC.element_to_be_clickable((By.ID, "favorites")))
+        favorites_btn.click()
 
-        # Confirm Galaxy S20+ is in favorites
+        # Confirm favorite exists
         wait.until(EC.presence_of_element_located((By.XPATH, "//p[text()='Galaxy S20+']")))
 
     finally:
         driver.quit()
-
