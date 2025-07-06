@@ -59,4 +59,18 @@ def test_favorite_galaxy_s20(caps):
 
     try:
         driver.get("https://www.bstackdemo.com/")
-        wait.until(EC.visibility_of_element_l_
+        wait.until(EC.visibility_of_element_located((By.ID, "username"))).send_keys(DEMO_USER)
+        driver.find_element(By.ID, "password").send_keys(DEMO_PASS)
+        driver.find_element(By.ID, "login-btn").click()
+
+        wait.until(EC.element_to_be_clickable((By.XPATH, "//div[text()='Samsung']"))).click()
+        wait.until(EC.presence_of_element_located((By.XPATH, "//p[text()='Samsung Galaxy S20+']")))
+
+        heart_icon = driver.find_element(By.XPATH, "//p[text()='Samsung Galaxy S20+']/../..//span[contains(@class, 'favorite')]")
+        heart_icon.click()
+
+        driver.find_element(By.ID, "favorites").click()
+        wait.until(EC.visibility_of_element_located((By.XPATH, "//p[text()='Samsung Galaxy S20+']")))
+
+    finally:
+        driver.quit()
