@@ -2,7 +2,7 @@ import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
-from browserstack_config import USERNAME, ACCESS_KEY, capabilities
+from utils.browserstack_config import USERNAME, ACCESS_KEY, capabilities
 
 @pytest.mark.parametrize("caps", capabilities)
 def test_favorite_galaxy_s20(caps):
