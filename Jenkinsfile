@@ -26,7 +26,7 @@ pipeline {
                 ]) {
                     sh '''
                         . venv/bin/activate
-                        pytest tests/
+                        PYTHONPATH=. pytest tests/
                     '''
                 }
             }
@@ -37,8 +37,11 @@ pipeline {
         always {
             echo 'Pipeline finished.'
         }
+        success {
+            echo '✅ Tests passed successfully!'
+        }
         failure {
-            echo 'Build failed — check console output for details.'
+            echo '❌ Build failed — check Console Output.'
         }
     }
 }
