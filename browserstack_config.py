@@ -1,33 +1,26 @@
 import os
 
-USERNAME = os.environ.get("BROWSERSTACK_USERNAME")
+USERNAME = os.environ.get("BROWSERSTACK_USERNAME")  # For BrowserStack API
 ACCESS_KEY = os.environ.get("BROWSERSTACK_ACCESS_KEY")
-DEMO_PASS = os.environ.get("DEMO_PASS")
+DEMO_USER = os.environ.get("bstack-demo-username")  # For UI login
+DEMO_PASS = os.environ.get("bstack-demo-password")  # For UI login
 
 capabilities = [
     {
         "browserName": "Chrome",
         "browserVersion": "latest",
-        "bstack:options": {
-            "os": "Windows",
-            "osVersion": "10"
-        }
+        "os": "Windows",
+        "osVersion": "10"
     },
     {
         "browserName": "Firefox",
         "browserVersion": "latest",
-        "bstack:options": {
-            "os": "OS X",
-            "osVersion": "Ventura"
-        }
+        "os": "OS X",
+        "osVersion": "Ventura"
     },
     {
-        "browserName": "Chrome",
-        "bstack:options": {
-            "deviceName": "Samsung Galaxy S22",
-            "realMobile": "true",
-            "osVersion": "12.0"
-        }
+        "deviceName": "Samsung Galaxy S22",
+        "realMobile": "true",
+        "osVersion": "12.0"
     }
 ]
-
