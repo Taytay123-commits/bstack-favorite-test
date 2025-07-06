@@ -66,8 +66,8 @@ def test_favorite_galaxy_s20(caps):
         login_button.click()
 
         # ✅ Confirm login was successful by checking URL contains login=true
-        wait.until(lambda d: "login=true" in d.current_url)
-        assert "login=true" in driver.current_url
+        wait.until(lambda d: "signin=true" in d.current_url)
+        assert "signin=true" in driver.current_url
 
         # Filter by Samsung
         wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='samsung']"))).click()
