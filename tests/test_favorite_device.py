@@ -41,8 +41,9 @@ def test_favorite_galaxy_s20(caps):
             options=options
         )
         
-        driver.maximize_window()
+        
         driver.get("https://bstackdemo.com")
+        driver.maximize_window()
         wait = WebDriverWait(driver, 20)
 
         # Log in
