@@ -1,30 +1,26 @@
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
-
-USERNAME = os.getenv("BROWSERSTACK_USERNAME")
-ACCESS_KEY = os.getenv("BROWSERSTACK_ACCESS_KEY")
+USERNAME = os.environ.get("BROWSERSTACK_USERNAME")
+ACCESS_KEY = os.environ.get("BROWSERSTACK_ACCESS_KEY")
+DEMO_PASS = os.environ.get("DEMO_PASS")
 
 capabilities = [
     {
-        "browser": "Chrome",
-        "browser_version": "latest",
+        "browserName": "Chrome",
+        "browserVersion": "latest",
         "os": "Windows",
-        "os_version": "10",
-        "name": "Windows Chrome Test"
+        "osVersion": "10"
     },
     {
-        "browser": "Firefox",
-        "browser_version": "latest",
+        "browserName": "Firefox",
+        "browserVersion": "latest",
         "os": "OS X",
-        "os_version": "Ventura",
-        "name": "macOS Firefox Test"
+        "osVersion": "Ventura"
     },
     {
-        "device": "Samsung Galaxy S22",
-        "real_mobile": "true",
-        "os_version": "12.0",
-        "name": "Mobile Test"
+        "deviceName": "Samsung Galaxy S22",
+        "realMobile": "true",
+        "osVersion": "12.0"
     }
 ]
+
