@@ -6,12 +6,7 @@ pipeline {
         BROWSERSTACK_ACCESS_KEY = credentials('bstack-access-key')
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/Taytay123-commits/bstack-favorite-test.git'
-            }
-        }
+
 
         stage('Install Dependencies') {
             steps {
