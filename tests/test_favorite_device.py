@@ -40,7 +40,8 @@ def test_favorite_galaxy_s20(caps):
             command_executor="https://hub.browserstack.com/wd/hub",
             options=options
         )
-
+        
+        driver.maximize_window()
         driver.get("https://bstackdemo.com")
         wait = WebDriverWait(driver, 20)
 
