@@ -1,17 +1,17 @@
+import os
 import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
-from browserstack_config import USERNAME, ACCESS_KEY, DEMO_PASS, capabilities
+from browserstack_config import USERNAME, ACCESS_KEY, capabilities, DEMO_USER, DEMO_PASS
 
 
 @pytest.mark.parametrize("caps", capabilities)
 def test_favorite_galaxy_s20(caps):
     browser_name = caps.get("browserName")
 
-    # Define bstack:options (Selenium 4+ W3C format)
     bstack_options = {
         "userName": USERNAME,
         "accessKey": ACCESS_KEY,
@@ -23,7 +23,6 @@ def test_favorite_galaxy_s20(caps):
     caps["bstack:options"] = bstack_options
 
     try:
-        # Desktop browsers
         if browser_name in ["Chrome", "Firefox"]:
             if browser_name == "Chrome":
                 options = webdriver.ChromeOptions()
@@ -38,54 +37,48 @@ def test_favorite_galaxy_s20(caps):
                 options=options
             )
         else:
-            # Mobile devices
-            options = webdriver.ChromeOptions()
+            mobile_options = webdriver.ChromeOptions()
             for key, value in caps.items():
-                options.set_capability(key, value)
-
+                mobile_options.set_capability(key, value)
             driver = webdriver.Remote(
                 command_executor="https://hub.browserstack.com/wd/hub",
-                options=options
+                options=mobile_options
             )
 
-        driver.maximize_window()
+        driver.get("https://bstackdemo.com")
         wait = WebDriverWait(driver, 20)
 
-        # Step 1: Go to the homepage
-        driver.get("https://bstackdemo.com")
+        # Click Sign In to open the login form
+        wait.until(EC.element_to_be_clickable((By.ID, "signin"))).click()
 
-        # Step 2: Click "Sign In" button
-        sign_in_button = wait.until(EC.element_to_be_clickable((By.ID, "signin")))
-        sign_in_button.click()
-
-        # Step 3: Find the "username" container and send credentials
+        # Locate username container then find input inside and send keys
         username_container = wait.until(EC.presence_of_element_located((By.ID, "username")))
         username_input = username_container.find_element(By.TAG_NAME, "input")
-        username_input.send_keys(USERNAME)
+        username_input.send_keys(DEMO_USERNAME)
         username_input.send_keys(Keys.ENTER)
 
-        # Step 4: Find the "password" container and send credentials
+        # Locate password container then find input inside and send keys
         password_container = wait.until(EC.presence_of_element_located((By.ID, "password")))
         password_input = password_container.find_element(By.TAG_NAME, "input")
-        password_input.send_keys(DEMO_PASS)
+        password_input.send_keys(DEMO_PASSWORD)
         password_input.send_keys(Keys.ENTER)
 
-        # Step 5: Filter for "Samsung"
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//div[text()='Samsung']"))).click()
+        # Wait for login to complete by checking cart or welcome
+        wait.until(EC.presence_of_element_located((By.ID, "logout")))
 
-        # Step 6: Favorite "Galaxy S20+"
-        heart = wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//p[text()='Galaxy S20+']/../../..//span[contains(@class,'favorite')]")
-        ))
-        heart.click()
+        # Filter by Samsung
+        wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='Samsung']"))).click()
 
-        # Step 7: Go to Favorites
-        favorites_link = wait.until(EC.element_to_be_clickable((By.ID, "favorites")))
-        favorites_link.click()
+        # Favorite Galaxy S20+
+        wait.until(EC.element_to_be_clickable(
+            (By.XPATH, "//div[text()='Galaxy S20+']/ancestor::div[contains(@class, 'shelf-item')]//span[@class='favorite']"))
+        ).click()
 
-        # Step 8: Verify "Galaxy S20+" is listed
-        wait.until(EC.visibility_of_element_located((By.XPATH, "//p[text()='Galaxy S20+']")))
+        # Go to Favorites
+        wait.until(EC.element_to_be_clickable((By.ID, "favorites"))).click()
+
+        # Check Galaxy S20+ is in the list
+        wait.until(EC.presence_of_element_located((By.XPATH, "//div[text()='Galaxy S20+']")))
 
     finally:
         driver.quit()
-
