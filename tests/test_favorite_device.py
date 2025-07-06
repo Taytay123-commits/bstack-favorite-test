@@ -7,8 +7,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from browserstack_config import USERNAME, ACCESS_KEY, capabilities, DEMO_USER, DEMO_PASS
 
-DEMO_USER = os.environ.get("DEMO_USER")
-DEMO_PASS = os.environ.get("DEMO_PASS")
+DEMO_USERNAME = os.environ.get("DEMO_USERNAME")
+DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD")
 
 @pytest.mark.parametrize("caps", capabilities)
 def test_favorite_galaxy_s20(caps):
@@ -56,13 +56,13 @@ def test_favorite_galaxy_s20(caps):
         # Locate username container then find input inside and send keys
         username_container = wait.until(EC.presence_of_element_located((By.ID, "username")))
         username_input = username_container.find_element(By.TAG_NAME, "input")
-        username_input.send_keys(DEMO_USER)
+        username_input.send_keys(DEMO_USERNAME)
         username_input.send_keys(Keys.ENTER)
 
         # Locate password container then find input inside and send keys
         password_container = wait.until(EC.presence_of_element_located((By.ID, "password")))
         password_input = password_container.find_element(By.TAG_NAME, "input")
-        password_input.send_keys(DEMO_PASS)
+        password_input.send_keys(DEMO_PASSWORD)
         password_input.send_keys(Keys.ENTER)
 
         # Wait for login to complete by checking cart or welcome
