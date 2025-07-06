@@ -67,7 +67,10 @@ def test_favorite_galaxy_s20(caps):
         assert "signin=true" in driver.current_url
 
         # Click the Samsung checkbox filter
-        wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='samsung']"))).click()
+       samsung_checkbox_label = wait.until(
+        EC.element_to_be_clickable((By.XPATH, "//label[input[@value='Samsung']]"))
+        )
+        samsung_checkbox_label.click()
 
         # Wait for Galaxy S20+ product to be present
         galaxy_s20 = wait.until(EC.presence_of_element_located(
