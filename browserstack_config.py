@@ -1,10 +1,14 @@
 import os
 
-USERNAME = os.environ.get("BROWSERSTACK_USERNAME")  # For BrowserStack API
+# BrowserStack credentials from Jenkins environment variables
+USERNAME = os.environ.get("BROWSERSTACK_USERNAME")
 ACCESS_KEY = os.environ.get("BROWSERSTACK_ACCESS_KEY")
-DEMO_USER = os.environ.get("bstack-demo-username")  # For UI login
-DEMO_PASS = os.environ.get("bstack-demo-password")  # For UI login
 
+# Demo site credentials (used in UI form login)
+DEMO_USERNAME = os.environ.get("DEMO_USERNAME")
+DEMO_PASSWORD = os.environ.get("DEMO_PASSWORD")
+
+# Test capabilities for different platforms
 capabilities = [
     {
         "browserName": "Chrome",
