@@ -9,65 +9,64 @@ from browserstack_config import capabilities, USERNAME, ACCESS_KEY, DEMO_PASS
 
 @pytest.mark.parametrize("caps", capabilities)
 def test_favorite_galaxy_s20(caps):
-    browser_name = caps.get("browserName")
-
-    # Define bstack:options (Selenium 4+ W3C format)
+    # Attach BrowserStack credentials using bstack:options
     bstack_options = {
         "userName": USERNAME,
         "accessKey": ACCESS_KEY,
         "buildName": "Galaxy Fav Build",
         "projectName": "Favorites Testing",
-        "debug": "true"
+        "debug": "true",
+        "seleniumVersion": "4.8.0"
     }
+    caps["bstack:options"] = {**caps.get("bstack:options", {}), **bstack_options}
 
-    # Attach bstack options
-    caps["bstack:options"] = bstack_options
+    browser_name = caps.get("browserName")
 
     try:
-        if browser_name in ["Chrome", "Firefox"]:
-            if browser_name == "Chrome":
-                options = webdriver.ChromeOptions()
-            else:
-                options = webdriver.FirefoxOptions()
-
-            for key, value in caps.items():
-                options.set_capability(key, value)
-
-            driver = webdriver.Remote(
-                command_executor="https://hub.browserstack.com/wd/hub",
-                options=options
-            )
+        # Set capabilities using browser-specific options
+        if browser_name == "Chrome":
+            options = webdriver.ChromeOptions()
+        elif browser_name == "Firefox":
+            options = webdriver.FirefoxOptions()
+        elif caps.get("deviceName"):  # Mobile
+            options = webdriver.ChromeOptions()  # or leave blank
         else:
-            # For mobile: use desired_capabilities directly
-            driver = webdriver.Remote(
-                command_executor="https://hub.browserstack.com/wd/hub",
-                desired_capabilities=caps
-            )
+            raise Exception("Unsupported browser/device config.")
+
+        for key, value in caps.items():
+            options.set_capability(key, value)
+
+        driver = webdriver.Remote(
+            command_executor="https://hub.browserstack.com/wd/hub",
+            options=options
+        )
 
         driver.get("https://bstackdemo.com")
-
         wait = WebDriverWait(driver, 20)
+
+        # Log in
         try:
             wait.until(EC.visibility_of_element_located((By.ID, "username"))).send_keys("demouser")
             driver.find_element(By.ID, "password").send_keys(DEMO_PASS)
             driver.find_element(By.ID, "login-btn").click()
         except TimeoutException:
-            print("DEBUG: Login elements not found.")
+            print("Login fields not found — layout might differ on mobile.")
             print(driver.page_source)
             raise
 
-        # Filter for Samsung devices
+        # Filter to Samsung devices
         wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='Samsung']"))).click()
 
         # Favorite Galaxy S20+
-        wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//div[text()='Galaxy S20+']/ancestor::div[contains(@class,'shelf-item')]//span[contains(@class,'favorite')]")
-        )).click()
+        wait.until(EC.element_to_be_clickable((
+            By.XPATH,
+            "//div[text()='Galaxy S20+']/ancestor::div[contains(@class,'shelf-item')]//span[contains(@class,'favorite')]"
+        ))).click()
 
-        # Go to Favorites
+        # Go to favorites
         wait.until(EC.element_to_be_clickable((By.ID, "favorites"))).click()
 
-        # Confirm Galaxy S20+ is listed
+        # Verify it's listed
         wait.until(EC.visibility_of_element_located(
             (By.XPATH, "//div[text()='Galaxy S20+']")
         ))
