@@ -65,6 +65,10 @@ def test_favorite_galaxy_s20(caps):
         password_input.send_keys(DEMO_PASSWORD)
         password_input.send_keys(Keys.ENTER)
 
+
+        login_button = wait.until(EC.element_to_be_clickable((By.ID, "login-btn")))
+        login_button.click()
+
         # Wait for login to complete by checking cart or welcome
         wait.until(EC.presence_of_element_located((By.ID, "logout")))
 
