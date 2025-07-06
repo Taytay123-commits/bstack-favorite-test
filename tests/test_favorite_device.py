@@ -70,7 +70,11 @@ def test_favorite_galaxy_s20(caps):
         assert "signin=true" in driver.current_url
 
         # Filter by Samsung
-        wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='samsung']"))).click()
+        samsung_checkbox = wait.until(EC.presence_of_element_located(
+        (By.CSS_SELECTOR, "input[type='checkbox'][value='Samsung']")
+        ))
+
+        driver.execute_script("arguments[0].click();", samsung_checkbox)
 
         # Favorite the Galaxy S20+
         favorite_button = wait.until(
