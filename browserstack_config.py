@@ -8,19 +8,26 @@ capabilities = [
     {
         "browserName": "Chrome",
         "browserVersion": "latest",
-        "os": "Windows",
-        "osVersion": "10"
+        "bstack:options": {
+            "os": "Windows",
+            "osVersion": "10"
+        }
     },
     {
         "browserName": "Firefox",
         "browserVersion": "latest",
-        "os": "OS X",
-        "osVersion": "Ventura"
+        "bstack:options": {
+            "os": "OS X",
+            "osVersion": "Ventura"
+        }
     },
     {
-        "deviceName": "Samsung Galaxy S22",
-        "realMobile": "true",
-        "osVersion": "12.0"
+        "browserName": "Chrome",
+        "bstack:options": {
+            "deviceName": "Samsung Galaxy S22",
+            "realMobile": "true",
+            "osVersion": "12.0"
+        }
     }
 ]
 
