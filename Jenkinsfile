@@ -6,28 +6,39 @@ pipeline {
         BROWSERSTACK_ACCESS_KEY = credentials('bstack-access-key')
     }
 
-stage('Install Dependencies') {
-    steps {
-        sh '''
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install --upgrade pip
-            pip install -r requirements.txt
-        '''
-    }
-}
+    stages {
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                '''
+            }
+        }
 
-stage('Run Tests') {
-    steps {
-        withEnv([
-            "BROWSERSTACK_USERNAME=${env.BROWSERSTACK_USERNAME}",
-            "BROWSERSTACK_ACCESS_KEY=${env.BROWSERSTACK_ACCESS_KEY}"
-        ]) {
-            sh '''
-                . venv/bin/activate
-                pytest
-            '''
+        stage('Run Tests') {
+            steps {
+                withEnv([
+                    "BROWSERSTACK_USERNAME=${env.BROWSERSTACK_USERNAME}",
+                    "BROWSERSTACK_ACCESS_KEY=${env.BROWSERSTACK_ACCESS_KEY}"
+                ]) {
+                    sh '''
+                        . venv/bin/activate
+                        pytest
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+        failure {
+            echo 'Build failed — check console output for details.'
         }
     }
 }
-
