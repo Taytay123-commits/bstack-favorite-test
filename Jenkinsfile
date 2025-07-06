@@ -20,28 +20,23 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                withEnv([
-                    "BROWSERSTACK_USERNAME=${env.BROWSERSTACK_USERNAME}",
-                    "BROWSERSTACK_ACCESS_KEY=${env.BROWSERSTACK_ACCESS_KEY}"
-                ]) {
-                    sh '''
-                        . venv/bin/activate
-                        PYTHONPATH=. pytest tests/
-                    '''
+                withCredentials([usernamePassword(credentialsId: 'bstack-demo-login', 
+                                                  usernameVariable: 'DEMO_USER', 
+                                                  passwordVariable: 'DEMO_PASS')]) {
+                    withEnv([
+                        "BROWSERSTACK_USERNAME=${env.BROWSERSTACK_USERNAME}",
+                        "BROWSERSTACK_ACCESS_KEY=${env.BROWSERSTACK_ACCESS_KEY}",
+                        "DEMO_USER=${env.DEMO_USER}",
+                        "DEMO_PASS=${env.DEMO_PASS}"
+                    ]) {
+                        sh '''
+                            . venv/bin/activate
+                            PYTHONPATH=. pytest tests/
+                        '''
+                    }
                 }
             }
         }
     }
-
-    post {
-        always {
-            echo 'Pipeline finished.'
-        }
-        success {
-            echo '✅ Tests passed successfully!'
-        }
-        failure {
-            echo '❌ Build failed — check Console Output.'
-        }
-    }
 }
+
