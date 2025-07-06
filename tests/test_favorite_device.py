@@ -5,15 +5,42 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from browserstack_config import USERNAME, ACCESS_KEY, capabilities, DEMO_USERNAME, DEMO_PASSWORD
+from dotenv import load_dotenv
+
+load_dotenv()
+
+USERNAME = os.getenv("DEMO_USERNAME")
+PASSWORD = os.getenv("DEMO_PASSWORD")
+BROWSERSTACK_USERNAME = os.getenv("BROWSERSTACK_USERNAME")
+BROWSERSTACK_ACCESS_KEY = os.getenv("BROWSERSTACK_ACCESS_KEY")
+
+capabilities = [
+    {
+        "browserName": "Chrome",
+        "browserVersion": "latest",
+        "os": "Windows",
+        "osVersion": "10"
+    },
+    {
+        "browserName": "Firefox",
+        "browserVersion": "latest",
+        "os": "OS X",
+        "osVersion": "Monterey"
+    },
+    {
+        "deviceName": "Samsung Galaxy S22",
+        "realMobile": "true",
+        "osVersion": "12.0"
+    }
+]
 
 @pytest.mark.parametrize("caps", capabilities)
 def test_favorite_galaxy_s20(caps):
     browser_name = caps.get("browserName")
 
     bstack_options = {
-        "userName": USERNAME,
-        "accessKey": ACCESS_KEY,
+        "userName": BROWSERSTACK_USERNAME,
+        "accessKey": BROWSERSTACK_ACCESS_KEY,
         "buildName": "Galaxy Fav Build",
         "projectName": "Favorites Testing",
         "debug": "true"
@@ -21,73 +48,52 @@ def test_favorite_galaxy_s20(caps):
 
     caps["bstack:options"] = bstack_options
 
-    try:
-        # Choose driver options based on environment
-        if browser_name in ["Chrome", "Firefox"]:
-            options = webdriver.ChromeOptions() if browser_name == "Chrome" else webdriver.FirefoxOptions()
-            for key, value in caps.items():
-                options.set_capability(key, value)
-            driver = webdriver.Remote(
-                command_executor="https://hub.browserstack.com/wd/hub",
-                options=options
-            )
-        else:
-            mobile_options = webdriver.ChromeOptions()
-            for key, value in caps.items():
-                mobile_options.set_capability(key, value)
-            driver = webdriver.Remote(
-                command_executor="https://hub.browserstack.com/wd/hub",
-                options=mobile_options
-            )
+    options = webdriver.ChromeOptions()
+    for key, value in caps.items():
+        options.set_capability(key, value)
 
-        wait = WebDriverWait(driver, 20)
-        driver.get("https://bstackdemo.com")
+    driver = webdriver.Remote(
+        command_executor="https://hub.browserstack.com/wd/hub",
+        options=options
+    )
 
-        # Click Sign In
-        wait.until(EC.element_to_be_clickable((By.ID, "signin"))).click()
+    wait = WebDriverWait(driver, 20)
+    driver.get("https://bstackdemo.com")
 
-        # Enter username
-        username_container = wait.until(EC.presence_of_element_located((By.ID, "username")))
-        username_input = username_container.find_element(By.TAG_NAME, "input")
-        username_input.send_keys(DEMO_USERNAME)
-        username_input.send_keys(Keys.ENTER)
+    # Login
+    wait.until(EC.element_to_be_clickable((By.ID, "signin"))).click()
 
-        # Enter password
-        password_container = wait.until(EC.presence_of_element_located((By.ID, "password")))
-        password_input = password_container.find_element(By.TAG_NAME, "input")
-        password_input.send_keys(DEMO_PASSWORD)
-        password_input.send_keys(Keys.ENTER)
+    username_input = wait.until(EC.presence_of_element_located((By.ID, "username"))).find_element(By.TAG_NAME, "input")
+    username_input.send_keys(USERNAME)
+    username_input.send_keys(Keys.ENTER)
 
-        # Click login button
-        login_button = wait.until(EC.element_to_be_clickable((By.ID, "login-btn")))
-        login_button.click()
+    password_input = wait.until(EC.presence_of_element_located((By.ID, "password"))).find_element(By.TAG_NAME, "input")
+    password_input.send_keys(PASSWORD)
+    password_input.send_keys(Keys.ENTER)
 
-        # Confirm login by URL
-        wait.until(lambda d: "signin=true" in d.current_url)
-        assert "signin=true" in driver.current_url
+    wait.until(EC.element_to_be_clickable((By.ID, "login-btn"))).click()
+    wait.until(lambda d: "signin=true" in d.current_url)
+    assert "signin=true" in driver.current_url
 
-        # Click the Samsung checkbox filter
-       samsung_checkbox_label = wait.until(
+    # Click Samsung checkbox
+    samsung_checkbox_label = wait.until(
         EC.element_to_be_clickable((By.XPATH, "//label[input[@value='Samsung']]"))
-        )
-        samsung_checkbox_label.click()
+    )
+    samsung_checkbox_label.click()
 
-        # Wait for Galaxy S20+ product to be present
-        galaxy_s20 = wait.until(EC.presence_of_element_located(
-            (By.CSS_SELECTOR, "div.shelf-item[data-sku='samsung-S20+-device-info.png']")
-        ))
+    # Click Favorite on Galaxy S20+
+    favorite_btn = wait.until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-sku='samsung-S20+-device-info.png'] button[aria-label='delete']"))
+    )
+    favorite_btn.click()
 
-        # Find and click the favorite (heart) button for Galaxy S20+
-        favorite_button = galaxy_s20.find_element(By.CSS_SELECTOR, "div.shelf-stopper button[aria-label='delete']")
-        favorite_button.click()
+    # Navigate to Favourites
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "a#favourites"))).click()
 
-        # Navigate to Favourites
-        wait.until(EC.element_to_be_clickable((By.ID, "favourites"))).click()
+    # Check Galaxy S20+ is in favourites
+    fav_item = wait.until(
+        EC.presence_of_element_located((By.XPATH, "//p[contains(@class, 'shelf-item__title') and text()='Galaxy S20+']"))
+    )
+    assert fav_item.is_displayed()
 
-        # Confirm Galaxy S20+ appears in Favourites
-        wait.until(EC.presence_of_element_located(
-            (By.CSS_SELECTOR, "div.shelf-item[data-sku='samsung-S20+-device-info.png']")
-        ))
-
-    finally:
-        driver.quit()
+    driver.quit()
