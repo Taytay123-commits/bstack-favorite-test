@@ -1,61 +1,77 @@
-import os
 import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from browserstack_config import capabilities, USERNAME, ACCESS_KEY, DEMO_PASS
+
 
 @pytest.mark.parametrize("caps", capabilities)
 def test_favorite_galaxy_s20(caps):
-    caps["browserstack.user"] = USERNAME
-    caps["browserstack.key"] = ACCESS_KEY
-    caps["build"] = "Galaxy Fav Build"
-    caps["project"] = "Favorites Testing"
-    caps["browserstack.debug"] = "true"
-
     browser_name = caps.get("browserName")
 
-    # Choose the appropriate options object for browser
-    options = None
-    if browser_name == "Chrome":
-        options = webdriver.ChromeOptions()
-    elif browser_name == "Firefox":
-        options = webdriver.FirefoxOptions()
+    # Define bstack:options (Selenium 4+ W3C format)
+    bstack_options = {
+        "userName": USERNAME,
+        "accessKey": ACCESS_KEY,
+        "buildName": "Galaxy Fav Build",
+        "projectName": "Favorites Testing",
+        "debug": "true"
+    }
 
-    if options:
-        for key, value in caps.items():
-            options.set_capability(key, value)
+    # Attach bstack options
+    caps["bstack:options"] = bstack_options
 
-        driver = webdriver.Remote(
-            command_executor="http://hub.browserstack.com/wd/hub",
-            options=options
-        )
-    else:
-        # For mobile caps, pass caps directly (no options)
-        driver = webdriver.Remote(
-            command_executor="http://hub.browserstack.com/wd/hub",
-            options=None
-        )
-        driver.capabilities.update(caps)
+    try:
+        if browser_name in ["Chrome", "Firefox"]:
+            if browser_name == "Chrome":
+                options = webdriver.ChromeOptions()
+            else:
+                options = webdriver.FirefoxOptions()
 
-    driver.get("https://bstackdemo.com")
-    wait = WebDriverWait(driver, 10)
+            for key, value in caps.items():
+                options.set_capability(key, value)
 
-    wait.until(EC.visibility_of_element_located((By.ID, "username"))).send_keys("demouser")
-    driver.find_element(By.ID, "password").send_keys(DEMO_PASS)
-    driver.find_element(By.ID, "login-btn").click()
+            driver = webdriver.Remote(
+                command_executor="https://hub.browserstack.com/wd/hub",
+                options=options
+            )
+        else:
+            # For mobile: use desired_capabilities directly
+            driver = webdriver.Remote(
+                command_executor="https://hub.browserstack.com/wd/hub",
+                desired_capabilities=caps
+            )
 
-    # Filter to Samsung
-    wait.until(EC.visibility_of_element_located((By.XPATH, "//span[text()='Samsung']"))).click()
+        driver.get("https://bstackdemo.com")
 
-    # Favorite Galaxy S20+
-    wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='Samsung Galaxy S20+']/following-sibling::div//span[@class='wishlist']"))).click()
+        wait = WebDriverWait(driver, 20)
+        try:
+            wait.until(EC.visibility_of_element_located((By.ID, "username"))).send_keys("demouser")
+            driver.find_element(By.ID, "password").send_keys(DEMO_PASS)
+            driver.find_element(By.ID, "login-btn").click()
+        except TimeoutException:
+            print("DEBUG: Login elements not found.")
+            print(driver.page_source)
+            raise
 
-    # Navigate to Favorites
-    driver.find_element(By.ID, "favorites").click()
+        # Filter for Samsung devices
+        wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='Samsung']"))).click()
 
-    # Validate Galaxy S20+ appears
-    wait.until(EC.visibility_of_element_located((By.XPATH, "//p[text()='Samsung Galaxy S20+']")))
+        # Favorite Galaxy S20+
+        wait.until(EC.element_to_be_clickable(
+            (By.XPATH, "//div[text()='Galaxy S20+']/ancestor::div[contains(@class,'shelf-item')]//span[contains(@class,'favorite')]")
+        )).click()
 
-    driver.quit()
+        # Go to Favorites
+        wait.until(EC.element_to_be_clickable((By.ID, "favorites"))).click()
+
+        # Confirm Galaxy S20+ is listed
+        wait.until(EC.visibility_of_element_located(
+            (By.XPATH, "//div[text()='Galaxy S20+']")
+        ))
+
+    finally:
+        if 'driver' in locals():
+            driver.quit()
