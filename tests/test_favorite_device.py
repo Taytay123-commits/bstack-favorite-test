@@ -7,6 +7,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from browserstack_config import USERNAME, ACCESS_KEY, capabilities, DEMO_USER, DEMO_PASS
 
+DEMO_USER = os.environ.get("DEMO_USER")
+DEMO_PASS = os.environ.get("DEMO_PASS")
 
 @pytest.mark.parametrize("caps", capabilities)
 def test_favorite_galaxy_s20(caps):
