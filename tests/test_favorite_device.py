@@ -1,10 +1,10 @@
+import os
 import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import os
 from browserstack_config import USERNAME, ACCESS_KEY, capabilities, DEMO_USERNAME, DEMO_PASSWORD
 
 @pytest.mark.parametrize("caps", capabilities)
@@ -22,12 +22,9 @@ def test_favorite_galaxy_s20(caps):
     caps["bstack:options"] = bstack_options
 
     try:
-        # Choose options based on device or desktop
+        # Choose driver options based on environment
         if browser_name in ["Chrome", "Firefox"]:
-            if browser_name == "Chrome":
-                options = webdriver.ChromeOptions()
-            else:
-                options = webdriver.FirefoxOptions()
+            options = webdriver.ChromeOptions() if browser_name == "Chrome" else webdriver.FirefoxOptions()
             for key, value in caps.items():
                 options.set_capability(key, value)
             driver = webdriver.Remote(
@@ -46,7 +43,7 @@ def test_favorite_galaxy_s20(caps):
         wait = WebDriverWait(driver, 20)
         driver.get("https://bstackdemo.com")
 
-        # Click Sign In to open the login modal
+        # Click Sign In
         wait.until(EC.element_to_be_clickable((By.ID, "signin"))).click()
 
         # Enter username
@@ -65,29 +62,29 @@ def test_favorite_galaxy_s20(caps):
         login_button = wait.until(EC.element_to_be_clickable((By.ID, "login-btn")))
         login_button.click()
 
-        # ✅ Confirm login was successful by checking URL contains login=true
+        # Confirm login by URL
         wait.until(lambda d: "signin=true" in d.current_url)
         assert "signin=true" in driver.current_url
 
-        # Filter by Samsung
-        samsung_checkbox = wait.until(EC.presence_of_element_located(
-        (By.CSS_SELECTOR, "input[type='checkbox'][value='Samsung']")
+        # Click the Samsung checkbox filter
+        wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='samsung']"))).click()
+
+        # Wait for Galaxy S20+ product to be present
+        galaxy_s20 = wait.until(EC.presence_of_element_located(
+            (By.CSS_SELECTOR, "div.shelf-item[data-sku='samsung-S20+-device-info.png']")
         ))
 
-        driver.execute_script("arguments[0].click();", samsung_checkbox)
-
-        # Favorite the Galaxy S20+
-        favorite_button = wait.until(
-            EC.element_to_be_clickable((By.XPATH, "//p[text()='Galaxy S20+']/../..//span[@class='favorite']"))
-        )
+        # Find and click the favorite (heart) button for Galaxy S20+
+        favorite_button = galaxy_s20.find_element(By.CSS_SELECTOR, "div.shelf-stopper button[aria-label='delete']")
         favorite_button.click()
 
-        # Navigate to Favorites
-        wait.until(EC.element_to_be_clickable((By.ID, "favorites"))).click()
+        # Navigate to Favourites
+        wait.until(EC.element_to_be_clickable((By.ID, "favourites"))).click()
 
-        # Assert Galaxy S20+ is present in Favorites
-        wait.until(EC.presence_of_element_located((By.XPATH, "//p[text()='Galaxy S20+']")))
+        # Confirm Galaxy S20+ appears in Favourites
+        wait.until(EC.presence_of_element_located(
+            (By.CSS_SELECTOR, "div.shelf-item[data-sku='samsung-S20+-device-info.png']")
+        ))
 
     finally:
         driver.quit()
-
